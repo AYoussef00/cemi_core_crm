@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="Cemi">
+  <!-- Outer interlocking arcs (dark teal) -->
+  <path fill="#003D33" d="
+    M64 10
+    C34 10 12 32 12 64
+    C12 96 34 118 64 118
+    L64 100
+    C44 100 28 84 28 64
+    C28 44 44 28 64 28
+    Z
+  "/>
+  <path fill="#003D33" d="
+    M64 10
+    C94 10 116 32 116 64
+    C116 96 94 118 64 118
+    L64 100
+    C84 100 100 84 100 64
+    C100 44 84 28 64 28
+    Z
+  "/>
+  <!-- Top / bottom connectors -->
+  <path fill="#003D33" d="M52 10h24l-8 14H60z"/>
+  <path fill="#003D33" d="M52 118h24l-8-14H60z"/>
+  <!-- Bright green core -->
+  <ellipse cx="64" cy="64" rx="10" ry="18" fill="#00C17A"/>
+</svg>

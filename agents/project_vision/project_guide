@@ -1,0 +1,900 @@
+واضح. أنت تريد تحويل خطة المنصة إلى Project Guidelines موحّدة داخل Cursor، بحيث يقرأها كل من Senior Laravel Engineer وSoftware Quality Professional ويفهمان طبيعة المشروع، دورة العمل، المراحل، قواعد البيانات، الصلاحيات، ومعايير القبول.
+
+الأهم أن تكون هذه الوثيقة مرجعًا ملزمًا للمشروع، وليس مجرد وصف للفكرة. ويجب أن تمنع الوكلاء من تطوير مراحل متقدمة قبل تثبيت الأساس، أو اختراع قواعد تجارية غير معتمدة، أو تنفيذ شاشات شكلية دون دورة عمل مكتملة.
+
+سأبنيها على ثلاثة مبادئ أساسية:
+
+- Modular Monolith: تطبيق Laravel واحد بوحدات واضحة ومسؤوليات مستقلة.
+- Business Rules First: قواعد العمل والبيانات والصلاحيات تسبق التنفيذ.
+- Phase Gates: لا تُعتبر أي مرحلة مكتملة قبل اجتياز معايير القبول واختبارها.
+
+## الملف المقترح: `PROJECT_GUIDELINES.md`
+
+أنصح بأن تكون وثيقة المشروع باللغة الإنجليزية لتوحيد التعليمات التقنية بين الوكلاء، مع اعتماد العربية كلغة للواجهات والتواصل مع المستخدمين ما لم يُعتمد غير ذلك. ويمكن أن تكون أسماء الكيانات والحقول البرمجية بالإنجليزية.
+
+ضع الملف في جذر المشروع، بجانب `composer.json`، ليكون مرجعًا مشتركًا لوكلاء التطوير والجودة.
+
+Writing
+
+# PROJECT GUIDELINES
+
+## Modular Business Operations, Sales, Inventory, Delivery & Collections Platform
+
+**Document Type:** Project-wide engineering and business requirements\
+**Applies To:** All AI agents, developers, QA engineers, and technical contributors\
+**Architecture:** Modular Monolith\
+**Backend:** Laravel, using the version established by the repository\
+**Document Status:** Initial project baseline — pending confirmation of unresolved business rules
+
+---
+
+# 1\. PROJECT MISSION
+
+Build a reliable, secure, maintainable business operations platform that manages the complete commercial lifecycle, from customer visits and sales requests to quotations, purchase orders, sales orders, inventory, deliveries, invoicing, collections, and reporting.
+
+The platform must provide a consistent source of truth for business records and their relationships.
+
+The objective is not to build disconnected CRUD screens. The objective is to implement complete, traceable business workflows with controlled state transitions, accurate calculations, appropriate authorization, and verifiable outcomes.
+
+Every implemented feature must serve a defined business requirement.
+
+All agents must understand the overall business lifecycle before modifying individual modules.
+
+## Primary objectives
+
+- Centralize customer, product, sales, inventory, delivery, and financial records.
+- Establish clear responsibilities and permissions for each user role.
+- Track the lifecycle and status of every important business document.
+- Support partial fulfillment of approved customer purchase orders.
+- Maintain accurate quantities, prices, margins, invoice balances, and collections.
+- Prevent unauthorized approvals and invalid business state transitions.
+- Maintain an auditable history of important actions and document changes.
+- Integrate email and WhatsApp Business through reliable, traceable workflows.
+- Provide accurate dashboards and reports based on authoritative records.
+- Deliver the system incrementally, with a usable and testable result at each stage.
+
+---
+
+# 2\. NON-NEGOTIABLE PROJECT PRINCIPLES
+
+All agents must follow these rules.
+
+## 2.1 Understand before implementing
+
+Before making changes, inspect the repository, current implementation, project rules, relevant requirements, and existing tests.
+
+Do not assume that a feature is missing simply because it is not immediately visible. Search the codebase first.
+
+Do not replace existing working implementations without understanding their purpose and dependencies.
+
+## 2.2 Business rules are authoritative
+
+The approved business requirements define the expected behavior.
+
+Do not invent rules for pricing, margins, credit limits, payment terms, document approval, inventory allocation, or financial closure.
+
+If a required rule has not been approved, document the ambiguity and request clarification when it blocks a safe implementation.
+
+When possible, continue work on independent, well-defined tasks without making consequential assumptions.
+
+## 2.3 Architecture must remain coherent
+
+Use a Modular Monolith: one application with clearly separated business modules and explicit boundaries.
+
+Avoid premature microservices, duplicated business logic, unnecessary abstraction layers, and uncontrolled cross-module dependencies.
+
+## 2.4 Data integrity is mandatory
+
+Important business quantities and financial balances must be derived from authoritative records and validated business operations.
+
+Do not rely on frontend calculations or user-supplied totals as the final source of truth.
+
+Do not permit invalid state transitions, unauthorized changes, or inconsistent document relationships.
+
+## 2.5 Security is part of every feature
+
+Every module must enforce server-side authentication, authorization, validation, and appropriate data visibility.
+
+A hidden button or disabled interface control is not an authorization mechanism.
+
+## 2.6 Every important workflow must be testable
+
+New business logic must have appropriate automated tests.
+
+Test positive behavior, invalid transitions, permissions, boundary conditions, failure handling, and relevant regression scenarios.
+
+## 2.7 Never claim unverified completion
+
+Agents must report what was actually implemented, tested, and verified.
+
+A screen existing does not mean its workflow is complete. A test being present does not mean the behavior is correct. A successful build does not establish release readiness.
+
+---
+
+# 3\. ARCHITECTURE AND MODULE BOUNDARIES
+
+Organize the application around the following business capabilities.
+
+1. Platform Foundation and Access Control
+2. Customers and Visits
+3. Products and Inventory
+4. Sales Requests, Pricing, and Quotations
+5. Customer Purchase Orders and Sales Orders
+6. Warehouse Preparation and Delivery
+7. Invoicing, Collections, and Credit Management
+8. Email and WhatsApp Business Integration
+9. Dashboards and Reporting
+10. End-to-End Operational Readiness
+
+These are logical modules, not a requirement to create ten independent applications.
+
+Each module must have clear ownership of its business rules, data operations, authorization requirements, and tests.
+
+## Architectural rules
+
+- Respect the repository's existing Laravel conventions and installed framework version.
+- Keep controllers focused on request handling and response coordination.
+- Put reusable and complex business operations in appropriate application services or action classes.
+- Use Form Requests, policies, API Resources, jobs, events, and listeners where they provide a clear benefit.
+- Keep business calculations centralized and deterministic.
+- Avoid duplicating critical business rules across controllers, models, jobs, and frontend code.
+- Define explicit interfaces between modules when needed.
+- Avoid direct manipulation of another module's internal implementation when a clear application-level operation exists.
+- Use database transactions for operations that must succeed or fail together.
+- Use events and queued jobs for appropriate asynchronous workflows without compromising data consistency.
+- Do not introduce repositories, interfaces, DTOs, or other abstractions without a concrete justification.
+
+Module separation must improve maintainability, not create unnecessary complexity.
+
+---
+
+# 4\. CORE BUSINESS ENTITIES
+
+The following entities define the initial business vocabulary. Their final attributes and relationships must be validated against approved requirements.
+
+## Organization and access
+
+- Company
+- Branch
+- Warehouse
+- User
+- Role
+- Permission
+- Audit Log
+- Notification
+- Attachment
+
+## Customer relationship management
+
+- Customer
+- Customer Contact
+- Customer Location
+- Customer Visit
+- Visit Outcome
+- Credit Profile or Credit Request
+
+## Products and inventory
+
+- Product
+- Unit of Measure
+- Product Specification
+- Warehouse Inventory Balance
+- Inventory Movement
+- Inventory Adjustment
+- Batch or Lot, when required
+- Supplier
+- Supplier Quotation or Purchase Cost Record
+
+## Sales and commercial documents
+
+- Sales Request
+- Quotation
+- Quotation Version or Revision
+- Customer Purchase Order
+- Sales Order
+- Sales Order Line
+- Fulfillment or Delivery Batch
+
+## Warehouse and delivery
+
+- Warehouse Preparation Task
+- Preparation Evidence
+- Sticker or Label Record
+- Delivery Order
+- Driver
+- Delivery Evidence
+- Signed Delivery Document
+
+## Finance
+
+- Invoice
+- Invoice Line
+- Payment Term
+- Collection or Payment Receipt
+- Invoice Allocation
+- Credit Approval
+- Account Statement
+
+## Communications and reporting
+
+- Outgoing Message
+- Message Delivery Attempt
+- Message Template
+- Integration Event
+- Report or Report Query, where needed
+
+These are conceptual entities. Do not create every table immediately.
+
+Before creating a model or migration, verify the business need, ownership, lifecycle, relationships, constraints, and whether an existing entity already serves the purpose.
+
+Avoid duplicate sources of truth for the same business fact.
+
+---
+
+# 5\. END-TO-END BUSINESS LIFECYCLE
+
+The primary business flow is:
+
+Customer Acquisition → Customer Visit → Sales Request → Pricing and Quotation → Customer Purchase Order → Sales Order → Warehouse Preparation → Delivery → Invoice → Collection → Financial Closure.
+
+Purchasing must be incorporated when products are unavailable or require supplier pricing and procurement.
+
+Communication, notifications, attachments, and audit records must support the relevant stages.
+
+## General lifecycle rules
+
+- Each document must have an identifiable owner, current state, and relevant history.
+- Each important transition must have explicit preconditions.
+- Each transition must verify the acting user's permissions.
+- A document must not advance merely because a user manually changes its status.
+- Required supporting records must exist before the transition is allowed.
+- Changes to approved documents must follow explicit revision or amendment rules.
+- Financial and inventory effects must be recorded consistently with the approved business process.
+- Repeated requests must not create duplicate financial or inventory effects.
+- Failed asynchronous operations must remain visible and recoverable.
+- Completed records must remain auditable.
+
+Do not assume that every module uses the same status names or transition rules.
+
+Define each document's lifecycle separately.
+
+---
+
+# 6\. CRITICAL BUSINESS INVARIANTS
+
+The following requirements must be enforced by the backend and, where appropriate, the database.
+
+## 6.1 Customer purchase orders and sales orders
+
+A customer purchase order may support multiple sales orders when fulfillment occurs in separate batches.
+
+For each purchase order line:
+
+- Preserve the approved quantity.
+- Track the quantity allocated to valid sales orders.
+- Track the quantity fulfilled through delivery records.
+- Track the remaining quantity accurately.
+- Prevent sales orders from exceeding the approved quantity.
+- Prevent concurrent operations from allocating the same remaining quantity more than once.
+- Preserve the relationship between the original purchase order, sales orders, deliveries, and invoices.
+
+Do not assume that ordered, allocated, prepared, delivered, and invoiced quantities are interchangeable.
+
+Define each quantity precisely.
+
+A canceled or rejected sales order must affect reserved or allocated quantities according to the approved cancellation policy.
+
+A later delivery batch must not require falsifying or replacing the history of earlier batches.
+
+## 6.2 Inventory
+
+Inventory changes must be traceable through authorized inventory operations.
+
+- Record receipts, issues, adjustments, and relevant reservations.
+- Prevent unauthorized stock modifications.
+- Prevent overselling or overshipping when the applicable inventory policy prohibits it.
+- Protect against concurrent allocation and deduction errors.
+- Use database transactions and appropriate locking or atomic operations where necessary.
+- Preserve inventory movement history.
+- Do not silently rewrite historical movements to correct a mistake.
+
+Distinguish physical on-hand quantity, reserved quantity, and available quantity whenever the business process requires them.
+
+Do not finalize the inventory accounting model until reservation, cancellation, delivery, and adjustment rules are approved.
+
+## 6.3 Pricing and margins
+
+- Store commercial prices and approved terms as controlled business records.
+- Enforce the approved pricing and margin authorization rules.
+- Prevent sales representatives from bypassing required approvals.
+- Preserve the approved quotation values and revision history.
+- Define how supplier costs, discounts, taxes, rounding, and margin percentages are calculated.
+- Do not assume the meaning of "margin" without confirmation.
+
+For example, gross margin and markup are different calculations. The business owner must approve which calculation applies.
+
+## 6.4 Delivery and invoicing
+
+The default business requirement is that an invoice can be issued only after the required signed delivery evidence has been recorded and validated.
+
+- Each delivered batch must be traceable to its sales order.
+- Each invoice must reference the relevant delivery and quantities.
+- Invoice quantities must not exceed the quantities eligible for invoicing.
+- Partial deliveries must be invoiced according to the approved partial-invoicing policy.
+- Duplicate invoicing of the same delivered quantity must be prevented.
+- Failed invoice creation must not leave inconsistent financial records.
+- Corrections must use an approved amendment, credit-note, cancellation, or equivalent accounting workflow where applicable.
+
+The exact legal and accounting requirements must be confirmed for the operating jurisdiction.
+
+## 6.5 Collections and balances
+
+- Record collections as distinct financial transactions.
+- Associate collections with the appropriate customer and financial documents.
+- Support partial and full collection.
+- Track the remaining balance accurately.
+- Prevent over-allocation or duplicate posting according to approved policy.
+- Preserve the history of payment allocations and reversals.
+- Calculate overdue status from approved due dates and outstanding balances.
+- Do not mark a transaction financially closed merely because a payment was initiated or a message was sent.
+
+The default closure rule is that the relevant commercial transaction is not financially closed until all required outstanding amounts are settled and all required closure conditions are satisfied.
+
+The business must explicitly define treatment of credit notes, write-offs, disputed amounts, refunds, and other exceptions.
+
+## 6.6 Credit approval
+
+- Credit limits and payment terms require the appropriate authorization.
+- Record the approved values and relevant approval history.
+- Do not allow an unauthorized user to change an approved credit profile.
+- Define whether credit exposure includes outstanding invoices, open orders, or other commitments.
+- Define how credit availability is checked when multiple orders are created concurrently.
+
+Never invent the credit exposure formula.
+
+---
+
+# 7\. DOCUMENT LIFECYCLE AND AUDITABILITY
+
+Important commercial and operational documents must have controlled lifecycle transitions.
+
+For each document type, define:
+
+- Allowed statuses.
+- Allowed transitions.
+- Authorized actors.
+- Required preconditions.
+- Required supporting evidence.
+- Database and inventory effects.
+- Financial effects.
+- Notifications and other side effects.
+- Cancellation and correction behavior.
+- Audit requirements.
+
+Use explicit state-transition rules rather than scattered status assignments.
+
+Where appropriate, record:
+
+- Creator and creation time.
+- Last modifier and modification time.
+- Approver and approval time.
+- Previous and new state.
+- Revision information.
+- Relevant reasons for rejection, cancellation, or correction.
+
+Protect audit records from unauthorized modification.
+
+Do not store passwords, authentication secrets, or unnecessary sensitive data in audit logs.
+
+Avoid relying on a generic status field to represent several different business concepts.
+
+For example, preparation status, delivery status, invoice status, and collection status must remain distinct where they describe independent processes.
+
+---
+
+# 8\. USERS, ROLES, AND AUTHORIZATION
+
+The initial role model includes the following operational responsibilities:
+
+- Sales Representative
+- Sales Manager
+- Procurement Staff
+- Warehouse Staff
+- Accountant
+- Executive or Management
+- System Administrator
+- External Driver or Delivery Participant, if system access is required
+
+These are initial role categories, not a finalized permission matrix.
+
+Before implementation, define permissions for viewing, creating, editing, submitting, approving, canceling, exporting, and administering each relevant resource.
+
+Apply least privilege.
+
+Examples of expected restrictions:
+
+- Sales representatives cannot approve their own restricted pricing or credit decisions unless explicitly permitted.
+- Warehouse staff cannot alter approved sales prices or financial records.
+- Accountants cannot invent delivery evidence to bypass the invoicing requirement.
+- External drivers can access only the information necessary for their assigned deliveries.
+- Users cannot access customer records, attachments, or reports outside their authorized scope.
+- Administrative access must not silently bypass business audit requirements.
+
+Authorization must be enforced on the server for every relevant operation.
+
+If the platform supports multiple companies, branches, or tenants, define the data isolation model explicitly before implementing cross-organization access.
+
+---
+
+# 9\. ATTACHMENTS, COMMUNICATIONS, AND INTEGRATIONS
+
+## Attachments
+
+Documents and images must be linked to their correct business records.
+
+Examples include:
+
+- Customer location images.
+- Supplier quotations.
+- Customer purchase orders.
+- Product documents.
+- Preparation photographs.
+- Sticker evidence.
+- Signed delivery documents.
+- Invoices and other approved financial documents.
+
+Use appropriate private storage, access controls, file validation, and retention rules.
+
+Never expose sensitive files through unrestricted public URLs.
+
+## Email and WhatsApp Business
+
+Communication integrations must support:
+
+- Approved message templates.
+- Recipient selection according to business rules.
+- Appropriate document attachments or secure links.
+- Message status tracking.
+- Failure visibility and retry handling.
+- Audit history linking messages to customers and transactions.
+- Protection against duplicate sends where required.
+
+Use supported provider APIs and approved credentials.
+
+Do not claim that an email or WhatsApp message was delivered merely because an internal job was queued.
+
+Distinguish queued, sent, accepted by provider, delivered, failed, and other provider-supported states.
+
+Do not assume that email threading, replies, read receipts, GPS tracking, or other external features are available without confirming provider capabilities.
+
+## GPS and external drivers
+
+GPS tracking must be implemented only when the required provider, permissions, device capabilities, privacy rules, and operating conditions are established.
+
+For external drivers, use an approved sharing or delivery workflow appropriate to their access level.
+
+---
+
+# 10\. REPORTING AND DATA CONSISTENCY
+
+Dashboards and reports must derive their values from authoritative business records.
+
+Examples include:
+
+- Sales activity and quotation status.
+- Purchase orders and remaining quantities.
+- Inventory availability and movement history.
+- Warehouse preparation and delivery progress.
+- Delivered and invoiced quantities.
+- Outstanding invoices and overdue balances.
+- Partial and completed collections.
+- Customer account statements.
+- Outstanding approvals and operational tasks.
+
+For every report, define:
+
+- The data source.
+- Filters and date boundaries.
+- Included document statuses.
+- Calculation rules.
+- Timezone and currency assumptions.
+- Authorization scope.
+- Treatment of cancellations and corrections.
+
+Reports must reconcile with underlying records.
+
+Do not independently calculate the same business metric differently across dashboards, exports, and account statements.
+
+Generate scheduled reports only when the reporting requirements, schedule, recipients, and failure behavior are defined.
+
+---
+
+# 11\. DEVELOPMENT PHASES AND ACCEPTANCE GATES
+
+Development follows the phases below. The order may be adjusted only when dependencies and risks have been evaluated and the change is approved.
+
+## Phase 0 — Requirements and Business Design
+
+Define terminology, roles, document relationships, state machines, pricing and margin rules, credit policies, payment terms, partial fulfillment, cancellation, audit, numbering, and reporting definitions.
+
+Acceptance criteria:
+
+- Complete ordinary sales workflow reviewed.
+- Unavailable-stock workflow reviewed.
+- Partial-delivery workflow reviewed.
+- Credit and partial-collection workflows reviewed.
+- Important terms and unresolved decisions documented.
+- Initial role and permission matrix approved.
+
+## Phase 1 — Platform Foundation
+
+Implement authentication, user management, authorization, company and branch settings, warehouses, audit logging, attachment management, internal notifications, and integration configuration foundations.
+
+Acceptance criteria:
+
+- Role-based access is tested.
+- Unauthorized operations are denied.
+- Important changes are auditable.
+- Attachments are protected.
+- Notification behavior is verified.
+- Configuration and secrets are handled safely.
+
+## Phase 2 — Customers and Visits
+
+Implement customer profiles, contact information, locations, photographs, approved credit information, visit scheduling, visit outcomes, notes, and customer history.
+
+Acceptance criteria:
+
+- Customer records can be created and maintained according to permissions.
+- Location and attachment access is correct.
+- Visits can be scheduled and recorded.
+- Search and customer history work correctly.
+- Representative and management permissions are tested.
+
+## Phase 3 — Products and Inventory
+
+Implement the product catalog, units of measure, approved specifications, warehouses, stock balances, stock movements, availability, and optional batch tracking.
+
+Acceptance criteria:
+
+- Product data is validated.
+- Stock movements update balances correctly.
+- Invalid stock issues are prevented according to policy.
+- Movement history is traceable.
+- Concurrent inventory operations are tested where relevant.
+
+## Phase 4 — Sales Requests, Pricing, and Quotations
+
+Implement sales requests, product quantities, proposed pricing, approval workflows, procurement routing for unavailable products, supplier cost information, quotation PDF generation, distribution, expiry reminders, and quotation revision history.
+
+Acceptance criteria:
+
+- Available and unavailable products follow the appropriate workflows.
+- Pricing and margin approvals are enforced.
+- Quotation documents contain correct data.
+- Unapproved quotations cannot be sent through protected workflows.
+- Expiry reminders and revision history are verified.
+
+## Phase 5 — Purchase Orders and Sales Orders
+
+Implement customer purchase order uploads, links to quotations and sales requests, sales order approval, batch quantities, remaining quantities, and warehouse notifications.
+
+Acceptance criteria:
+
+- Purchase orders are linked to the correct commercial records.
+- Sales orders respect approved quantities.
+- Multiple sales orders can fulfill one purchase order where permitted.
+- Remaining quantities remain accurate.
+- Concurrent allocations cannot exceed approved limits.
+- Cancellation and later-batch behavior follow approved rules.
+
+## Phase 6 — Warehouse Preparation and Delivery
+
+Implement warehouse tasks, preparation status, photographs, sticker or label evidence, urgent-order indicators, delivery orders, driver information, delivery location, optional GPS integration, and signed delivery evidence.
+
+Acceptance criteria:
+
+- Approved sales orders generate the required warehouse tasks.
+- Preparation evidence is linked correctly.
+- Delivery documents contain correct information.
+- Driver access is restricted appropriately.
+- Signed delivery evidence is validated before the relevant delivery is finalized.
+- Delivery quantities reconcile with the sales order and inventory records.
+
+## Phase 7 — Invoicing, Collections, and Credit
+
+Implement delivery-based invoicing, payment terms, credit approvals, due dates, collection records, partial collection, overdue reminders, account balances, and financial closure.
+
+Acceptance criteria:
+
+- Invoicing before required delivery evidence is prevented.
+- Invoice quantities match eligible delivered quantities.
+- Duplicate invoicing is prevented.
+- Due dates follow approved payment rules.
+- Partial collections update outstanding balances correctly.
+- Financial closure follows the approved settlement policy.
+- Financial records reconcile with their source documents.
+
+## Phase 8 — Email and WhatsApp Business
+
+Implement provider configuration, approved message templates, document delivery, recipient rules, message tracking, email threading where supported, WhatsApp integration, and failure recovery.
+
+Acceptance criteria:
+
+- Recipients match approved business rules.
+- Message content and attachments are correct.
+- Delivery states reflect actual provider information.
+- Failures are visible and retryable where appropriate.
+- Duplicate sends are controlled.
+- Messages are linked to the appropriate business records.
+
+## Phase 9 — Dashboards and Reporting
+
+Implement role-specific dashboards, outstanding approvals, warehouse tasks, invoice and collection reports, customer statements, and scheduled reporting.
+
+Acceptance criteria:
+
+- Report values reconcile with underlying records.
+- Access restrictions apply to every report.
+- Partial fulfillment and partial collection are represented correctly.
+- Filters and date boundaries behave consistently.
+- Scheduled tasks and failure handling are verified.
+
+## Phase 10 — End-to-End Validation and Pilot
+
+Validate the complete business lifecycle in a controlled environment.
+
+Required scenarios:
+
+1. New customer, visit, and fully available sales request.
+2. Unavailable product requiring supplier pricing or procurement.
+3. Quotation expiring without customer acceptance.
+4. One customer purchase order fulfilled across multiple batches.
+5. Partial delivery and invoicing for eligible delivered quantities.
+6. Credit-based transaction with due-date reminders.
+7. Partial collection followed by full settlement.
+8. Internal and external driver workflows.
+9. Email or WhatsApp failure followed by controlled recovery.
+10. Unauthorized access attempts across roles and business records.
+11. Duplicate requests and concurrent operations affecting quantities or payments.
+12. Reporting reconciliation against the completed business workflow.
+
+Acceptance criteria:
+
+- Critical business workflows pass.
+- Required permissions and security checks pass.
+- Blocking defects are resolved.
+- Important calculations reconcile.
+- Operational and recovery procedures are documented.
+- Known limitations and release risks are explicitly reviewed.
+- Business stakeholders approve the pilot.
+
+---
+
+# 12\. STANDARD WORKFLOW FOR ALL AGENTS
+
+Every substantial task must follow this sequence.
+
+## Step 1 — Inspect
+
+Read these guidelines, relevant agent rules, repository structure, existing implementation, and tests.
+
+## Step 2 — Identify scope
+
+Determine the module, business workflow, dependencies, affected entities, permissions, and acceptance criteria.
+
+## Step 3 — Check dependencies
+
+Confirm that prerequisite modules and business decisions are available.
+
+Do not build on an unapproved assumption merely to move faster.
+
+## Step 4 — Plan
+
+Identify intended file changes, database impact, security requirements, tests, and potential regressions.
+
+Keep plans proportionate to task complexity.
+
+## Step 5 — Implement or assess
+
+Make only the changes required by the task.
+
+Preserve existing work and avoid unrelated refactoring.
+
+## Step 6 — Test
+
+Run relevant tests and checks. Add regression tests where appropriate.
+
+Test permissions, business invariants, invalid transitions, failure behavior, and edge cases according to risk.
+
+## Step 7 — Review
+
+Review the final diff, migrations, business calculations, authorization, side effects, and compatibility.
+
+## Step 8 — Report
+
+Summarize what changed, what was verified, what remains unresolved, and whether the phase acceptance criteria are satisfied.
+
+---
+
+# 13\. QUALITY GATES AND PHASE COMPLETION
+
+A phase is not complete merely because its implementation exists.
+
+Every phase must have:
+
+- An approved scope.
+- Documented business rules.
+- Implemented backend behavior.
+- Appropriate user interface and integration, where applicable.
+- Correct authorization.
+- Data-integrity controls.
+- Automated tests for important behavior.
+- Relevant regression checks.
+- Verification of acceptance criteria.
+- Documentation of unresolved issues.
+
+Use the following statuses:
+
+- **Not Started:** Work has not begun.
+- **In Progress:** Implementation or assessment is underway.
+- **Blocked:** A dependency, decision, or critical issue prevents progress.
+- **Implemented, Not Verified:** Code exists, but acceptance criteria have not yet been demonstrated.
+- **Ready for Review:** Required implementation and checks are complete and awaiting review.
+- **Accepted:** Required acceptance criteria have been verified and approved.
+
+Do not mark a phase Accepted based only on code completion or a successful build.
+
+A later phase must not be treated as operationally complete if its required upstream business rules or dependencies remain unresolved.
+
+Independent preparatory work may continue when it does not introduce unapproved assumptions or compromise earlier phase gates.
+
+---
+
+# 14\. CHANGE MANAGEMENT AND BACKWARD COMPATIBILITY
+
+Before changing an existing implementation, determine:
+
+- Which modules depend on it.
+- Whether stored data relies on its current behavior.
+- Whether external API consumers are affected.
+- Whether reports or financial calculations change.
+- Whether existing tests describe important compatibility requirements.
+- Whether migrations and deployment sequencing are required.
+
+Use new migrations for deployed schema changes rather than casually rewriting historical migrations.
+
+Do not delete or rewrite approved financial records or inventory history without an explicit correction policy.
+
+Treat changes to approved business rules as controlled changes requiring updated documentation and tests.
+
+If a new requirement conflicts with an existing invariant, identify the conflict and obtain a decision before implementing incompatible behavior.
+
+---
+
+# 15\. SECURITY, PRIVACY, AND OPERATIONAL SAFETY
+
+All modules must:
+
+- Validate untrusted input.
+- Enforce server-side authorization.
+- Protect sensitive attachments and records.
+- Avoid exposing credentials or sensitive data in logs.
+- Apply safe database operations and transaction boundaries.
+- Protect against duplicate financial and inventory side effects.
+- Use secure configuration and provider credentials.
+- Keep sensitive business actions auditable.
+- Apply appropriate retention and access controls.
+- Avoid destructive operations without authorization.
+
+Production migrations, destructive database operations, dependency upgrades, deployments, and external actions with significant consequences require the appropriate approval and safety checks.
+
+Use controlled test data and isolated environments for automated and exploratory testing.
+
+---
+
+# 16\. PROJECT DOCUMENTATION
+
+Maintain project documentation as implementation evolves.
+
+At minimum, keep relevant documentation for:
+
+- Business requirements and unresolved decisions.
+- Domain terminology and entity relationships.
+- Module responsibilities and boundaries.
+- Role and permission matrix.
+- Document state machines and transitions.
+- Pricing, inventory, delivery, and financial invariants.
+- API contracts and external integrations.
+- Migration and deployment considerations.
+- Testing strategy and acceptance criteria.
+- Known limitations and technical debt.
+
+Update documentation when approved behavior changes.
+
+Avoid creating duplicate documents that disagree with one another. Identify a clear authoritative location for each category of information.
+
+---
+
+# 17\. CURRENT PROJECT STATUS AND NEXT ACTION
+
+The project roadmap is defined at a high level, but the existence of this document does not mean any phase has been implemented or accepted.
+
+The first task is to inspect the repository and determine the actual project status.
+
+If the repository is empty or contains only a scaffold:
+
+1. Review Phase 0 requirements.
+2. Identify missing business decisions.
+3. Propose the initial domain model and role matrix.
+4. Document the core document lifecycles.
+5. Identify critical business invariants.
+6. Define acceptance scenarios.
+7. Present unresolved decisions for approval before implementing dependent workflows.
+
+If implementation already exists:
+
+1. Map existing code to the project modules.
+2. Identify completed, incomplete, and missing capabilities.
+3. Evaluate existing behavior against these guidelines.
+4. Identify security, data-integrity, and regression risks.
+5. Recommend the safest next step based on actual dependencies.
+
+Do not assume that the correct next action is always to start from Phase 0 or rebuild existing code.
+
+Base the recommendation on repository evidence and approved business decisions.
+
+---
+
+# 18\. FINAL DIRECTIVE TO ALL AGENTS
+
+This project is a business operations platform, not a collection of unrelated screens.
+
+Every implementation decision must preserve the integrity of the overall business lifecycle.
+
+Understand the business before changing the code.
+
+Keep modules independent in responsibility but consistent in their shared business records.
+
+Protect authorization, quantities, prices, document states, and financial balances.
+
+Build incrementally, verify independently, and document important decisions.
+
+Never invent a business rule, silently bypass an approval, or report unverified work as complete.
+
+**The definition of success is a secure, auditable, reliable, and maintainable business platform whose complete workflows behave correctly—not merely an application that compiles or displays the expected screens.**
+
+## Recommended Cursor setup
+
+Keep the three documents separate so each has a clear responsibility.
+
+`PROJECT_GUIDELINES.md`
+
+Project-specific requirements, business lifecycle, module boundaries, development phases, and acceptance gates.
+
+`.cursor/rules/laravel-senior-engineer.mdc`
+
+Laravel implementation standards, architecture, security, maintainability, and development workflow.
+
+`.cursor/rules/software-quality-professional.mdc`
+
+Independent QA, testing strategy, defect reporting, regression testing, and release readiness.
+
+Ensure both Cursor rules explicitly instruct their agents to read `PROJECT_GUIDELINES.md` before performing project work.
+
+## What should happen next?
+
+My recommendation is to start with Phase 0: Domain and Business Rules, before building the application modules.
+
+There are several important decisions that should be clarified before implementation:
+
+- Whether inventory is deducted when a sales order is approved, when goods are prepared, or when delivery occurs.
+- How the system calculates margin and which users can approve exceptions.
+- Whether invoicing is strictly tied to signed delivery evidence and how delivery corrections are handled.
+- How collections, credit notes, overpayments, refunds, and write-offs affect financial closure.
+- Whether a purchase order's remaining quantity means unallocated quantity, undelivered quantity, or both as separate values.
+- Whether branches and warehouses share stock or have independent inventory and permissions.
+
+These decisions directly affect database design, concurrency, authorization, and financial correctness.
+
+The first deliverable should be an approved business-rules specification, entity relationship model, document state-transition definitions, and role-permission matrix. Once those are reviewed, the Laravel agent can implement the foundation while the QA agent derives acceptance tests from the same approved requirements.
