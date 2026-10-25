@@ -16,20 +16,45 @@ return new class extends Migration
             Schema::table('sales_requests', function (Blueprint $table) {
                 $table->foreignId('origin_visit_id')
                     ->nullable()
-                    ->after('customer_id')
-                    ->constrained('customer_visits')
+                    ->after('customer_id');
+            });
+        }
+
+        if (! Schema::hasForeignKey('sales_requests', ['origin_visit_id'])) {
+            Schema::table('sales_requests', function (Blueprint $table) {
+                $table->foreign('origin_visit_id', 'sr_origin_visit_fk')
+                    ->references('id')
+                    ->on('customer_visits')
                     ->restrictOnDelete();
-                $table->index('origin_visit_id');
+            });
+        }
+
+        if (! Schema::hasIndex('sales_requests', ['origin_visit_id'])
+            && ! Schema::hasIndex('sales_requests', 'sr_origin_visit_idx')) {
+            Schema::table('sales_requests', function (Blueprint $table) {
+                $table->index('origin_visit_id', 'sr_origin_visit_idx');
             });
         }
     }
 
     public function down(): void
     {
-        if (Schema::hasColumn('sales_requests', 'origin_visit_id')) {
-            Schema::table('sales_requests', function (Blueprint $table) {
-                $table->dropConstrainedForeignId('origin_visit_id');
-            });
+        if (! Schema::hasColumn('sales_requests', 'origin_visit_id')) {
+            return;
         }
+
+        Schema::table('sales_requests', function (Blueprint $table) {
+            foreach (Schema::getForeignKeys('sales_requests') as $foreignKey) {
+                if ($foreignKey['columns'] === ['origin_visit_id'] && is_string($foreignKey['name']) && $foreignKey['name'] !== '') {
+                    $table->dropForeign($foreignKey['name']);
+                }
+            }
+
+            if (Schema::hasIndex('sales_requests', 'sr_origin_visit_idx')) {
+                $table->dropIndex('sr_origin_visit_idx');
+            }
+
+            $table->dropColumn('origin_visit_id');
+        });
     }
 };

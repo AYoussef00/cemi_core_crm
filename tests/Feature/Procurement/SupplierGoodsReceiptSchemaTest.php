@@ -58,6 +58,43 @@ class SupplierGoodsReceiptSchemaTest extends TestCase
             'cascade',
             $this->foreignKeyOn('supplier_goods_receipt_lines', 'supplier_goods_receipt_id')['on_delete'],
         );
+        $this->assertSame(
+            'restrict',
+            $this->foreignKeyOn('supplier_goods_receipts', 'supplier_purchase_order_id')['on_delete'],
+        );
+        $this->assertSame(
+            'restrict',
+            $this->foreignKeyOn('supplier_goods_receipt_lines', 'product_id')['on_delete'],
+        );
+    }
+
+    public function test_all_migrated_index_and_foreign_key_names_fit_mysql_identifier_limit(): void
+    {
+        foreach (Schema::getTableListing() as $table) {
+            if (str_starts_with($table, 'sqlite_')) {
+                continue;
+            }
+
+            foreach (Schema::getIndexes($table) as $index) {
+                $this->assertLessThanOrEqual(
+                    64,
+                    strlen((string) $index['name']),
+                    $table.' index '.$index['name'],
+                );
+            }
+
+            foreach (Schema::getForeignKeys($table) as $foreignKey) {
+                if (! is_string($foreignKey['name']) || $foreignKey['name'] === '') {
+                    continue;
+                }
+
+                $this->assertLessThanOrEqual(
+                    64,
+                    strlen($foreignKey['name']),
+                    $table.' fk '.$foreignKey['name'],
+                );
+            }
+        }
     }
 
     public function test_goods_receipt_migration_recreates_missing_lines_table(): void

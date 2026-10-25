@@ -30,7 +30,9 @@ return new class extends Migration
 
         Schema::create('customer_purchase_order_lines', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_purchase_order_id')->constrained('customer_purchase_orders')->cascadeOnDelete();
+            $table->foreignId('customer_purchase_order_id')
+                ->constrained('customer_purchase_orders', 'id', 'cpo_lines_po_fk')
+                ->cascadeOnDelete();
             $table->foreignId('quotation_line_id')->constrained('quotation_lines')->restrictOnDelete();
             $table->foreignId('product_id')->constrained('products')->restrictOnDelete();
             $table->decimal('quantity', 15, 3);
