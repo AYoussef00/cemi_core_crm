@@ -19,6 +19,8 @@ class AuthenticationTest extends TestCase
         $response->assertSee('lang="ar"', false);
         $response->assertSee('dir="rtl"', false);
         $response->assertSee('تسجيل الدخول', false);
+        $response->assertSee('auth-pane-visual', false);
+        $response->assertDontSee('نسيت كلمة المرور؟', false);
         $response->assertDontSee('/register', false);
         $response->assertDontSee('إنشاء حساب', false);
     }
