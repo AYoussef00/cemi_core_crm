@@ -3,7 +3,6 @@
  * Polls the authenticated feed; plays a soft chime on new arrivals.
  */
 
-const STORAGE_OPEN = 'cemi.alertRoom.open';
 const STORAGE_MUTE = 'cemi.alertRoom.mute';
 
 function csrfToken(root) {
@@ -146,12 +145,19 @@ function renderItems(stream, items, readUrlTemplate) {
     });
 }
 
+function formatCount(count) {
+    const n = Math.max(0, Number(count) || 0);
+    return n > 99 ? '99+' : String(n);
+}
+
 function updateUnreadUi(root, count) {
     const badge = root.querySelector('#alert-room-fab-badge');
     const unreadEl = root.querySelector('#alert-room-unread');
     const readAll = root.querySelector('#alert-room-read-all');
     const fab = root.querySelector('#alert-room-fab');
+    const navBadge = document.getElementById('shell-unread-badge');
     const n = Math.max(0, Number(count) || 0);
+    const label = formatCount(n);
 
     if (unreadEl) {
         unreadEl.textContent = n > 0 ? `${n} غير مقروء` : 'الكل مقروء';
@@ -164,13 +170,21 @@ function updateUnreadUi(root, count) {
             badge.hidden = true;
         } else {
             badge.hidden = false;
-            badge.textContent = String(Math.min(n, 99));
+            badge.textContent = label;
+        }
+    }
+    if (navBadge) {
+        if (n < 1) {
+            navBadge.hidden = true;
+        } else {
+            navBadge.hidden = false;
+            navBadge.textContent = label;
         }
     }
     if (fab) {
         fab.setAttribute(
             'aria-label',
-            n > 0 ? `فتح غرفة التنبيهات، ${n} غير مقروء` : 'فتح غرفة التنبيهات',
+            n > 0 ? `الإشعارات، ${n} غير مقروء` : 'الإشعارات',
         );
     }
 }
@@ -270,13 +284,11 @@ function setOpen(root, open) {
         panel.hidden = false;
         root.classList.add('is-open');
         fab.setAttribute('aria-expanded', 'true');
-        try { sessionStorage.setItem(STORAGE_OPEN, '1'); } catch {}
         refresh(root, { silent: true });
     } else {
         panel.hidden = true;
         root.classList.remove('is-open');
         fab.setAttribute('aria-expanded', 'false');
-        try { sessionStorage.setItem(STORAGE_OPEN, '0'); } catch {}
     }
 }
 
@@ -308,23 +320,21 @@ export function initAlertRoom() {
     const readAllBtn = root.querySelector('#alert-room-read-all');
     const pollMs = Math.max(10000, Number(root.dataset.pollMs) || 20000);
 
-    let preferOpen = true;
     let preferMute = false;
     try {
-        const storedOpen = sessionStorage.getItem(STORAGE_OPEN);
-        if (storedOpen === '0') preferOpen = false;
-        if (storedOpen === '1') preferOpen = true;
         preferMute = sessionStorage.getItem(STORAGE_MUTE) === '1';
     } catch {}
 
     setMuted(root, preferMute);
-    setOpen(root, preferOpen);
+    setOpen(root, false);
+    updateUnreadUi(root, root.dataset.initialUnread);
     refresh(root, { silent: true });
 
     const unlockOnce = () => unlockAudio();
     document.addEventListener('pointerdown', unlockOnce, { once: true, passive: true });
 
-    fab?.addEventListener('click', () => {
+    fab?.addEventListener('click', (event) => {
+        event.stopPropagation();
         const open = ! root.classList.contains('is-open');
         setOpen(root, open);
         unlockAudio();
@@ -332,11 +342,26 @@ export function initAlertRoom() {
     closeBtn?.addEventListener('click', () => setOpen(root, false));
     muteBtn?.addEventListener('click', () => {
         unlockAudio();
-        // Preview the same chime used when a new alert arrives.
         playNotifyChime();
         setMuted(root, root.dataset.muted !== '1');
     });
     readAllBtn?.addEventListener('click', () => markAllRead(root));
+
+    document.addEventListener('pointerdown', (event) => {
+        if (! root.classList.contains('is-open')) {
+            return;
+        }
+        if (! root.contains(event.target)) {
+            setOpen(root, false);
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && root.classList.contains('is-open')) {
+            setOpen(root, false);
+            fab?.focus();
+        }
+    });
 
     window.setInterval(() => refresh(root), pollMs);
 

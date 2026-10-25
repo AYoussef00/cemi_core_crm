@@ -11,12 +11,6 @@
         <header class="ds-page-bar" aria-labelledby="so-heading">
             <div class="ds-page-bar-copy">
                 <h1 id="so-heading" class="admin-title">أوامر البيع</h1>
-                <p class="admin-lead">
-                    كل أمر بيع مرتبط بأمر شراء عميل وصفقة (PF7 / ORG3). الاعتماد يحجز المخزون. التسليم لاحقًا.
-                    @unless ($canViewPrices ?? true)
-                        · بلا أسعار على قائمة أوامر البيع لدور المستودع.
-                    @endunless
-                </p>
             </div>
             @if ($canCreate)
                 <div class="ds-page-bar-tools">

@@ -13,8 +13,8 @@
                 <p class="page-kicker">إنشاء · مسودة</p>
                 <h1 id="sr-create-heading" class="admin-title">طلب بيع جديد</h1>
                 <p class="admin-lead">
-                    مسودة مرتبطة بمنشأة. حدّد التوفر لكل بند صراحةً — الرصيد استرشادي فقط.
-                    الإرسال من شاشة التفاصيل لاحقًا.
+                    مسودة مرتبطة بمنشأة. التوفر يُحسب من رصيد المستودع.
+                    الإرسال من شاشة التفاصيل لاحقًا. الزيارة اختيارية وليست شرطًا.
                 </p>
             </div>
             <div class="ds-page-bar-tools">
@@ -38,7 +38,12 @@
                 <form method="POST" action="{{ route('sales-requests.store') }}" class="auth-form admin-form customers-form" novalidate>
                     @csrf
                     <h2 id="sr-create-fields-heading" class="visually-hidden">بيانات طلب البيع</h2>
-                    @include('sales-requests._form', ['salesRequest' => null, 'preselectCustomerId' => $preselectCustomerId])
+                    @include('sales-requests._form', [
+                        'salesRequest' => null,
+                        'preselectCustomerId' => $preselectCustomerId,
+                        'originVisit' => $originVisit ?? null,
+                        'prefillNotesAr' => $prefillNotesAr ?? null,
+                    ])
                     <div class="admin-form-actions">
                         <button type="submit" class="btn btn-glass-primary">حفظ المسودة</button>
                         <a href="{{ route('sales-requests.index') }}" class="btn btn-glass">إلغاء</a>

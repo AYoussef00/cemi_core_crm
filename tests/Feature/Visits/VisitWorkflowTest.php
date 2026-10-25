@@ -48,7 +48,7 @@ class VisitWorkflowTest extends TestCase
             'outcome' => 'نقاش المنتجات',
             'notes' => 'ملاحظات بعد الزيارة',
             'customer_needs' => 'عرض أسعار مواد بناء',
-        ])->assertRedirect(route('visits.show', $visit));
+        ])->assertRedirect(route('visits.show', $visit).'#visit-next');
 
         $visit->refresh();
         $this->assertSame(VisitStatus::Completed, $visit->status);

@@ -11,10 +11,6 @@
         <header class="ds-page-bar" aria-labelledby="customers-heading">
             <div class="ds-page-bar-copy">
                 <h1 id="customers-heading" class="admin-title">العملاء</h1>
-                <p class="admin-lead">
-                    منشآت وعملاء ضمن نطاق صلاحيتك — اسم المنشأة، مندوب المبيعات المُعيَّن، وجهات الاتصال.
-                    الإصدار الأول للمنشآت/المؤسسات فقط (بلا عملاء أفراد).
-                </p>
             </div>
             @if ($canManage)
                 <div class="ds-page-bar-tools">

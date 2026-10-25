@@ -11,10 +11,6 @@
         <header class="ds-page-bar" aria-labelledby="quotes-heading">
             <div class="ds-page-bar-copy">
                 <h1 id="quotes-heading" class="admin-title">عروض الأسعار</h1>
-                <p class="admin-lead">
-                    أسعار شاملة ضريبة القيمة المضافة الثابتة 15%. البيع = تكلفة المورد/الشراء + هامش مطلق (ر.س). بلا خصومات.
-                    يُنشأ العرض من طلب بيع «جاهز للتسعير».
-                </p>
             </div>
         </header>
 

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Customers\StoreCustomerRequest;
 use App\Http\Requests\Customers\UpdateCustomerRequest;
 use App\Models\Customer;
+use App\Models\CustomerVisit;
+use App\Models\SalesRequest;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\Authorization\RoleSlug;
@@ -14,6 +16,7 @@ use App\Support\Customers\CustomerContactRole;
 use App\Support\Customers\CustomerContactSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -105,7 +108,8 @@ class CustomerController extends Controller
             'customer' => $customer,
             'commercial' => $commercial->for($customer, $viewer),
             'canUpdate' => $viewer->can('update', $customer),
-            'canScheduleVisit' => $viewer->can('createForCustomer', [\App\Models\CustomerVisit::class, $customer]),
+            'canScheduleVisit' => $viewer->can('createForCustomer', [CustomerVisit::class, $customer]),
+            'canCreateSalesRequest' => $viewer->can('createForCustomer', [SalesRequest::class, $customer]),
             'canViewVisits' => $viewer->can('visits.view'),
         ]);
     }
@@ -166,7 +170,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, User>
+     * @return Collection<int, User>
      */
     private function salesRepOptions(User $actor)
     {

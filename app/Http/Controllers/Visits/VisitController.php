@@ -8,6 +8,7 @@ use App\Http\Requests\Visits\StoreVisitRequest;
 use App\Http\Requests\Visits\UpdateVisitRequest;
 use App\Models\Customer;
 use App\Models\CustomerVisit;
+use App\Models\SalesRequest;
 use App\Models\User;
 use App\Support\Visits\VisitStatus;
 use App\Support\Visits\VisitWorkflow;
@@ -79,13 +80,23 @@ class VisitController extends Controller
     {
         $this->authorize('view', $visit);
 
-        $visit->load(['customer.assignedSalesRep', 'assignedUser', 'createdBy']);
+        $visit->load([
+            'customer.assignedSalesRep',
+            'assignedUser',
+            'createdBy',
+            'originatedSalesRequests' => fn ($q) => $q->latest('id'),
+        ]);
+
+        $user = request()->user();
+        $customer = $visit->customer;
 
         return view('visits.show', [
             'visit' => $visit,
-            'canUpdate' => request()->user()?->can('update', $visit) ?? false,
-            'canComplete' => request()->user()?->can('complete', $visit) ?? false,
-            'canCancel' => request()->user()?->can('cancel', $visit) ?? false,
+            'canUpdate' => $user?->can('update', $visit) ?? false,
+            'canComplete' => $user?->can('complete', $visit) ?? false,
+            'canCancel' => $user?->can('cancel', $visit) ?? false,
+            'canCreateSalesRequest' => $customer !== null
+                && ($user?->can('createForCustomer', [SalesRequest::class, $customer]) ?? false),
             'timezone' => config('app.timezone'),
         ]);
     }
@@ -129,7 +140,8 @@ class VisitController extends Controller
 
         return redirect()
             ->route('visits.show', $visit)
-            ->with('status_ar', 'تم تسجيل إكمال الزيارة.');
+            ->withFragment('visit-next')
+            ->with('status_ar', 'تم تسجيل إكمال الزيارة. يمكنك إنشاء طلب بيع لهذه المنشأة إن لزم الأمر.');
     }
 
     public function cancel(Request $request, CustomerVisit $visit, VisitWorkflow $workflow): RedirectResponse

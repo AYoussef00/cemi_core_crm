@@ -35,7 +35,7 @@ class SalesRequestController extends Controller
             ->visibleTo($user)
             ->search($q !== '' ? $q : null)
             ->status($status !== '' ? $status : null)
-            ->with(['customer', 'createdBy', 'lines'])
+            ->with(['customer', 'createdBy', 'lines.product'])
             ->latest('id')
             ->paginate(20)
             ->withQueryString();
@@ -121,7 +121,7 @@ class SalesRequestController extends Controller
 
         /** @var User $user */
         $user = $request->user();
-        $salesRequest->load('lines');
+        $salesRequest->load(['lines', 'originVisit.customer']);
 
         return view('sales-requests.edit', [
             'salesRequest' => $salesRequest,
@@ -129,6 +129,7 @@ class SalesRequestController extends Controller
             'products' => Product::query()->with('unit')->orderBy('name_ar')->get(),
             'availabilities' => LineAvailability::cases(),
             'stockHints' => $this->stockHints($inventory),
+            'originVisit' => $salesRequest->originVisit,
         ]);
     }
 

@@ -130,6 +130,7 @@ if credit_exposure >= customer.credit_limit:
 | Cancel — Sales Manager | May cancel **any** scheduled visit. |
 | Notifications | In-app (internal) notification to the **assigned representative** when **another** authorized user **creates**, **changes the scheduled time**, or **cancels** that visit. No notify on self-action or when time is unchanged. **No** recurring reminders. |
 | GPS | Visit GPS / check-in tracking **excluded from v1**. |
+| Sales request | Completing a visit does **not** create a sales request or commercial obligation. Optional UI handoff (completed visit + customer profile) may start a draft with nullable `origin_visit_id`. Direct create without a visit remains valid. |
 
 Visit records remain linked to the customer and appear in customer activity/history. View/manage scopes remain per `docs/ROLES_AND_PERMISSIONS.md` (Rep **Cust**, SM **All**).
 

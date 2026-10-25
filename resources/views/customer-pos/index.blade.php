@@ -11,9 +11,6 @@
         <header class="ds-page-bar" aria-labelledby="cpo-heading">
             <div class="ds-page-bar-copy">
                 <h1 id="cpo-heading" class="admin-title">أوامر شراء العملاء</h1>
-                <p class="admin-lead">
-                    كل أمر شراء ينشئ صفقة واحدة (1:1). يُربط بعرض سعر معتمد أو مُرسل. أوامر البيع تُنشأ تحته فقط (PF7).
-                </p>
             </div>
             @if ($canCreate)
                 <div class="ds-page-bar-tools">

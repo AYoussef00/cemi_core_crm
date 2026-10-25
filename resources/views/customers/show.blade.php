@@ -36,6 +36,9 @@
             @if ($canScheduleVisit ?? false)
                 <a href="{{ route('visits.create', ['customer_id' => $customer->id]) }}" class="customer-quick-link">جدولة زيارة</a>
             @endif
+            @if ($canCreateSalesRequest ?? false)
+                <a href="{{ route('sales-requests.create', ['customer_id' => $customer->id]) }}" class="customer-quick-link">طلب بيع</a>
+            @endif
         </nav>
 
         <section class="so-detail-section" aria-labelledby="cust-profile-heading">

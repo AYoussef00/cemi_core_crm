@@ -11,10 +11,6 @@
         <header class="ds-page-bar" aria-labelledby="products-heading">
             <div class="ds-page-bar-copy">
                 <h1 id="products-heading" class="admin-title">المنتجات</h1>
-                <p class="admin-lead">
-                    كتالوج المنتجات: الاسم العربي، وحدة القياس الأساسية، والمواصفات الفنية.
-                    أرصدة المخزون من شاشة الأرصدة. لا تُعرض أسعار البيع أو أرقام SKU هنا.
-                </p>
             </div>
             <div class="ds-page-bar-tools">
                 <form method="GET" action="{{ route('products.index') }}" class="ds-data-search" role="search">

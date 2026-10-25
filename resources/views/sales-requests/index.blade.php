@@ -11,11 +11,6 @@
         <header class="ds-page-bar" aria-labelledby="sr-heading">
             <div class="ds-page-bar-copy">
                 <h1 id="sr-heading" class="admin-title">طلبات البيع</h1>
-                <p class="admin-lead">
-                    مسودة → إرسال (متوفر = جاهز للتسعير، أو بانتظار المشتريات عند بنود غير متوفرة).
-                    التوفر اختيار صريح لكل بند — لا توجيه تلقائي من المخزون.
-                    التسعير والعروض في خطوة لاحقة.
-                </p>
             </div>
             @if ($canCreate)
                 <div class="ds-page-bar-tools">
@@ -38,14 +33,14 @@
                         <span class="ds-list-count dir-ltr">{{ number_format($requests->total()) }}</span>
                         <span class="ds-list-count-label">طلب ضمن نطاقك</span>
                     </div>
-                    <form method="GET" action="{{ route('sales-requests.index') }}" class="ds-list-filters" role="search">
+                    <form method="GET" action="{{ route('sales-requests.index') }}" class="ds-list-filters" role="search" data-sr-live-search>
                         <div class="ds-data-search">
                             <svg class="ds-data-search-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"/>
                                 <path d="M16.2 16.2 20 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
                             </svg>
                             <label class="visually-hidden" for="sr-q">بحث</label>
-                            <input id="sr-q" type="search" name="q" value="{{ $q }}" placeholder="بحث بالمنشأة أو المنتج…" autocomplete="off">
+                            <input id="sr-q" type="search" name="q" value="{{ $q }}" placeholder="بحث بالمنشأة أو المنتج…" autocomplete="off" @if ($q !== '') autofocus @endif>
                         </div>
                         <label class="visually-hidden" for="sr-status">الحالة</label>
                         <select id="sr-status" name="status" class="visits-status-filter" onchange="this.form.submit()" aria-label="تصفية الحالة">
@@ -67,7 +62,11 @@
                         <p>لا طلبات ضمن التصفية الحالية. امسح البحث أو غيّر الحالة.</p>
                     </div>
                 @else
-                    <div class="ds-list-body">
+                    <div class="ds-data-empty ds-list-empty" role="status" data-sr-live-empty hidden>
+                        <strong>لا نتائج مطابقة</strong>
+                        <p>لا طلبات ضمن التصفية الحالية. امسح البحث أو غيّر الحالة.</p>
+                    </div>
+                    <div class="ds-list-body" data-sr-live-table>
                         <table class="admin-table admin-table--sheet">
                             <thead>
                                 <tr>
@@ -90,8 +89,14 @@
                                             'cancelled' => 'badge-danger',
                                             default => 'badge-neutral',
                                         };
+                                        $haystack = trim(implode(' ', array_filter([
+                                            (string) $item->id,
+                                            $item->customer?->name_ar,
+                                            $item->createdBy?->name,
+                                            $item->lines->pluck('product.name_ar')->filter()->implode(' '),
+                                        ])));
                                     @endphp
-                                    <tr @class(['sr-row-awaiting' => $statusValue === 'awaiting_procurement'])>
+                                    <tr @class(['sr-row-awaiting' => $statusValue === 'awaiting_procurement']) data-sr-haystack="{{ $haystack }}">
                                         <td>
                                             <div class="quotes-id-block">
                                                 <a href="{{ route('sales-requests.show', $item) }}" class="quotes-id-link dir-ltr">#{{ $item->id }}</a>
@@ -139,3 +144,55 @@
         @endif
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        (() => {
+            const form = document.querySelector('[data-sr-live-search]');
+            const input = document.getElementById('sr-q');
+            if (! form || ! input) {
+                return;
+            }
+
+            const rows = Array.from(document.querySelectorAll('[data-sr-haystack]'));
+            const empty = document.querySelector('[data-sr-live-empty]');
+            const table = document.querySelector('[data-sr-live-table]');
+            let timer = 0;
+
+            const filterRows = () => {
+                const q = (input.value || '').trim().toLocaleLowerCase();
+                let visible = 0;
+
+                rows.forEach((row) => {
+                    const haystack = (row.getAttribute('data-sr-haystack') || '').toLocaleLowerCase();
+                    const show = q === '' || haystack.includes(q);
+                    row.hidden = ! show;
+                    if (show) {
+                        visible += 1;
+                    }
+                });
+
+                if (empty) {
+                    empty.hidden = q === '' || visible > 0 || rows.length === 0;
+                }
+                if (table) {
+                    table.hidden = q !== '' && visible === 0 && rows.length > 0;
+                }
+            };
+
+            input.addEventListener('input', () => {
+                filterRows();
+                window.clearTimeout(timer);
+                timer = window.setTimeout(() => {
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }, 350);
+            });
+
+            filterRows();
+        })();
+    </script>
+@endpush

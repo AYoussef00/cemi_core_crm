@@ -125,6 +125,36 @@
                     </div>
                 </dl>
             </section>
+
+            @if ($canCreateSalesRequest ?? false)
+                <section id="visit-next" class="visit-action-panel visit-action-next" aria-labelledby="visit-next-heading">
+                    <div class="visit-panel-head">
+                        <p class="visit-panel-kicker visit-panel-kicker-next">التالي</p>
+                        <h2 id="visit-next-heading" class="visit-panel-title">طلب بيع لهذه المنشأة</h2>
+                        <p class="visit-panel-lead">
+                            الزيارة لا تُنشئ طلب بيع تلقائيًا. إن كان العميل يحتاج عرضًا أو توريدًا، ابدأ المسودة من هنا — المنشأة ستكون مختارة.
+                        </p>
+                    </div>
+
+                    @if ($visit->originatedSalesRequests->isNotEmpty())
+                        <ul class="visit-origin-sr-list">
+                            @foreach ($visit->originatedSalesRequests as $originSr)
+                                <li>
+                                    <a href="{{ route('sales-requests.show', $originSr) }}" class="quotes-id-link dir-ltr">#{{ $originSr->id }}</a>
+                                    <span class="badge badge-neutral">{{ $originSr->status->labelAr() }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    <div class="admin-form-actions">
+                        <a href="{{ route('sales-requests.create', ['customer_id' => $visit->customer_id, 'visit_id' => $visit->id]) }}"
+                           class="btn btn-glass-primary">
+                            {{ $visit->originatedSalesRequests->isNotEmpty() ? 'طلب بيع آخر' : 'إنشاء طلب بيع' }}
+                        </a>
+                    </div>
+                </section>
+            @endif
         @endif
 
         @if ($canComplete)

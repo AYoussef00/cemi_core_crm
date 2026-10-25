@@ -22,26 +22,46 @@
     <h2 class="customers-form-section-title">بيانات الطلب</h2>
     <p class="customers-form-section-lead">المنشأة مطلوبة. الملاحظات اختيارية.</p>
 
-    <div class="auth-field">
-        <label for="customer_id">المنشأة <span class="required-mark" title="مطلوب">*</span></label>
-        <select id="customer_id" name="customer_id" required aria-required="true"
-                aria-invalid="{{ $errors->has('customer_id') ? 'true' : 'false' }}">
-            <option value="">— اختر المنشأة —</option>
-            @foreach ($customers as $customer)
-                <option value="{{ $customer->id }}"
-                    @selected((string) old('customer_id', $salesRequest->customer_id ?? $preselectCustomerId ?? '') === (string) $customer->id)>
-                    {{ $customer->name_ar }}
-                </option>
-            @endforeach
-        </select>
+    @if ($originVisit ?? null)
+        <input type="hidden" name="customer_id" value="{{ $originVisit->customer_id }}">
+        <input type="hidden" name="origin_visit_id" value="{{ $originVisit->id }}">
+        <div class="sr-origin-banner" role="note">
+            <p class="sr-origin-kicker">من زيارة مكتملة</p>
+            <p class="sr-origin-title">{{ $originVisit->customer?->name_ar ?? 'المنشأة' }}</p>
+            <p class="sr-origin-lead">
+                المنشأة ثابتة من الزيارة.
+                <a href="{{ route('visits.show', $originVisit) }}" class="sr-origin-link">عرض الزيارة</a>
+                — الطلب لا يُنشأ حتى تحفظ المسودة بالبنود.
+            </p>
+        </div>
+        @error('origin_visit_id')
+            <p class="auth-error" role="alert">{{ $message }}</p>
+        @enderror
         @error('customer_id')
             <p class="auth-error" role="alert">{{ $message }}</p>
         @enderror
-    </div>
+    @else
+        <div class="auth-field">
+            <label for="customer_id">المنشأة <span class="required-mark" title="مطلوب">*</span></label>
+            <select id="customer_id" name="customer_id" required aria-required="true"
+                    aria-invalid="{{ $errors->has('customer_id') ? 'true' : 'false' }}">
+                <option value="">— اختر المنشأة —</option>
+                @foreach ($customers as $customer)
+                    <option value="{{ $customer->id }}"
+                        @selected((string) old('customer_id', $salesRequest->customer_id ?? $preselectCustomerId ?? '') === (string) $customer->id)>
+                        {{ $customer->name_ar }}
+                    </option>
+                @endforeach
+            </select>
+            @error('customer_id')
+                <p class="auth-error" role="alert">{{ $message }}</p>
+            @enderror
+        </div>
+    @endif
 
     <div class="auth-field">
         <label for="notes_ar">ملاحظات</label>
-        <textarea id="notes_ar" name="notes_ar" rows="2" maxlength="2000">{{ old('notes_ar', $salesRequest->notes_ar ?? '') }}</textarea>
+        <textarea id="notes_ar" name="notes_ar" rows="2" maxlength="2000">{{ old('notes_ar', $salesRequest->notes_ar ?? $prefillNotesAr ?? '') }}</textarea>
         @error('notes_ar')
             <p class="auth-error" role="alert">{{ $message }}</p>
         @enderror

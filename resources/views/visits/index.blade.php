@@ -11,11 +11,6 @@
         <header class="ds-page-bar" aria-labelledby="visits-heading">
             <div class="ds-page-bar-copy">
                 <h1 id="visits-heading" class="admin-title">الزيارات</h1>
-                <p class="admin-lead">
-                    جدولة وتسجيل نتائج الزيارات للمنشآت ضمن نطاق صلاحيتك.
-                    الحالات: مجدولة → مكتملة أو ملغاة (نهائية).
-                    المندوب دائمًا مندوب المنشأة المُعيَّن — بلا تجاوز أو تكرار أو GPS.
-                </p>
             </div>
             @if ($canCreate)
                 <div class="ds-page-bar-tools">

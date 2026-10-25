@@ -161,9 +161,7 @@
                         <a href="{{ route('account.notifications.index') }}" class="nav-sub {{ $isTasks ? 'is-active' : '' }}" @if ($isTasks) aria-current="page" @endif>
                             <span class="nav-dot" aria-hidden="true"></span>
                             الإشعارات
-                            @if (($shellUnread ?? 0) > 0)
-                                <span class="nav-badge">{{ $shellUnread > 99 ? '99+' : $shellUnread }}</span>
-                            @endif
+                            <span class="nav-badge" id="shell-unread-badge" @if (($shellUnread ?? 0) < 1) hidden @endif>{{ ($shellUnread ?? 0) > 99 ? '99+' : ($shellUnread ?? 0) }}</span>
                         </a>
                     </li>
                     <li>

@@ -104,7 +104,13 @@
                         @unless ($firstTab === 'sales_requests') hidden @endunless
                     >
                         @if ($commercial['sales_requests']->isEmpty())
-                            <div class="ds-data-empty is-compact" role="status"><strong>لا طلبات بيع</strong></div>
+                            <div class="ds-data-empty is-compact" role="status">
+                                <strong>لا طلبات بيع</strong>
+                                @if ($canCreateSalesRequest ?? false)
+                                    <p class="ds-data-empty-lead">الزيارة ليست شرطًا. ابدأ مسودة لهذه المنشأة عند الحاجة.</p>
+                                    <a href="{{ route('sales-requests.create', ['customer_id' => $customer->id]) }}" class="btn btn-glass-primary btn-sm">طلب بيع</a>
+                                @endif
+                            </div>
                         @else
                             <div class="ds-table-surface">
                                 <div class="ds-data-body">

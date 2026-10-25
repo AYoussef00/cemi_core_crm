@@ -11,15 +11,6 @@
         <header class="ds-page-bar" aria-labelledby="stock-heading">
             <div class="ds-page-bar-copy">
                 <h1 id="stock-heading" class="admin-title">أرصدة المخزون</h1>
-                <p class="admin-lead">
-                    @if ($warehouse)
-                        المستودع: <strong>{{ $warehouse->name_ar ?: 'المستودع الوحيد' }}</strong>.
-                    @else
-                        مستودع واحد.
-                    @endif
-                    المتاح = الرصيد − المحجوز، ولا يُسمح بأن يصبح سالبًا.
-                    لا تُعرض أسعار البيع هنا.
-                </p>
             </div>
             <div class="ds-page-bar-tools">
                 @if ($warehouse)

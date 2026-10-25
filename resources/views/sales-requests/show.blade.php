@@ -64,6 +64,18 @@
                     {{ $salesRequest->submitted_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') ?? '—' }}
                 </p>
             </article>
+            @if ($salesRequest->origin_visit_id)
+                <article class="inventory-metric">
+                    <p class="inventory-metric-label">من زيارة</p>
+                    <p class="inventory-metric-value inventory-metric-value-sm">
+                        @can('view', $salesRequest->originVisit)
+                            <a href="{{ route('visits.show', $salesRequest->originVisit) }}" class="quotes-id-link dir-ltr">#{{ $salesRequest->origin_visit_id }}</a>
+                        @else
+                            <span class="dir-ltr">#{{ $salesRequest->origin_visit_id }}</span>
+                        @endcan
+                    </p>
+                </article>
+            @endif
         </section>
 
         @if ($salesRequest->notes_ar)

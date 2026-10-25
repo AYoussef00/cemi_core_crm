@@ -59,6 +59,33 @@ class SalesRequestProcurementTest extends TestCase
         $this->get(route('procurement.tasks.index'))->assertRedirect(route('login'));
     }
 
+    public function test_index_search_matches_any_letter_of_customer_name(): void
+    {
+        $match = Customer::factory()->assignedTo($this->rep)->create(['name_ar' => 'شركة النور']);
+        $other = Customer::factory()->assignedTo($this->rep)->create(['name_ar' => 'مؤسسة الفجر']);
+
+        SalesRequest::factory()->create([
+            'customer_id' => $match->id,
+            'created_by_user_id' => $this->rep->id,
+        ]);
+        SalesRequest::factory()->create([
+            'customer_id' => $other->id,
+            'created_by_user_id' => $this->rep->id,
+        ]);
+
+        $this->actingAs($this->rep)
+            ->get(route('sales-requests.index', ['q' => 'ن']))
+            ->assertOk()
+            ->assertSee('شركة النور', false)
+            ->assertDontSee('مؤسسة الفجر', false);
+
+        $this->actingAs($this->rep)
+            ->get(route('sales-requests.index', ['q' => 'ش']))
+            ->assertOk()
+            ->assertSee('شركة النور', false)
+            ->assertDontSee('مؤسسة الفجر', false);
+    }
+
     public function test_rep_creates_and_submits_available_only_auto_opens_quotation(): void
     {
         $this->seedWarehouseStock('100.000');

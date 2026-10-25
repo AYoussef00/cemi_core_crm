@@ -16,6 +16,7 @@ use App\Support\Notifications\InternalNotifier;
 use App\Support\Procurement\ProcurementTaskStatus;
 use App\Support\Quotations\QuotationWorkflow;
 use DomainException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -83,8 +84,14 @@ class SalesRequestWorkflow
         $customer = Customer::query()->findOrFail($payload['customer_id']);
 
         return DB::transaction(function () use ($request, $actor, $payload, $customer): SalesRequest {
+            $originVisitId = $request->origin_visit_id;
+            if ($originVisitId !== null && (int) $customer->id !== (int) $request->customer_id) {
+                $originVisitId = null;
+            }
+
             $request->fill([
                 'customer_id' => $customer->id,
+                'origin_visit_id' => $originVisitId,
                 'notes_ar' => $payload['notes_ar'] ?? null,
             ])->save();
 
@@ -214,7 +221,7 @@ class SalesRequestWorkflow
      *     supplier_cost: string,
      *     supplier_name_ar?: string|null,
      *     notes_ar?: string|null,
-     *     supplier_quote_pdf: \Illuminate\Http\UploadedFile
+     *     supplier_quote_pdf: UploadedFile
      * }  $payload
      */
     public function recordSupplierCost(ProcurementTask $task, User $actor, array $payload): ProcurementTask

@@ -18,6 +18,18 @@
 **Submit action:** moves `draft` → `awaiting_procurement` **or** `ready_for_pricing`.  
 **Quotation create:** moves `ready_for_pricing` → `quotation_linked`. Cancel of linked requests is blocked — cancel/supersede the quotation first.
 
+## Origin visit (optional handoff)
+
+A visit **does not** create a sales request. Completing a visit records outcome / `customer_needs` only.
+
+Optional `sales_requests.origin_visit_id` (nullable, completed visit, same customer) records that the draft was started from that visit. Direct create from the customer profile or the sales-request list remains valid with a null origin.
+
+UI handoff (no new routes):
+
+- Completed visit show: CTA to `sales-requests.create?customer_id=&visit_id=`
+- Customer profile: CTA to `sales-requests.create?customer_id=`
+- Create form from a visit locks the customer, prefills notes from `customer_needs` (truncated to 2000), and does not invent product lines.
+
 See `docs/QUOTATIONS.md` for pricing / send.
 
 ---

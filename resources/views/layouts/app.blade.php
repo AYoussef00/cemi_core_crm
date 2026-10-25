@@ -48,17 +48,7 @@
                     @endif
                 </div>
                 @auth
-                    <a
-                        href="{{ route('account.notifications.index') }}"
-                        class="topbar-notify"
-                        title="الإشعارات"
-                        aria-label="الإشعارات{{ $shellUnread > 0 ? '، '.$shellUnread.' غير مقروء' : '' }}"
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 3.2 1.2 4.5 1.2 4.5H4.8S6 12.2 6 9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-                        @if ($shellUnread > 0)
-                            <span class="topbar-notify-dot" aria-hidden="true"></span>
-                        @endif
-                    </a>
+                    @include('layouts.partials.alert-room')
                     <a href="{{ route('account.profile') }}" class="topbar-avatar" title="الحساب">{{ mb_substr(auth()->user()->name, 0, 1) }}</a>
                 @endauth
             </header>
@@ -72,8 +62,6 @@
 
         </div>
     </div>
-
-    @include('layouts.partials.alert-room')
 
     @stack('scripts')
 </body>
