@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Procurement;
 
+use App\Support\SchemaConstraints;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -17,9 +18,13 @@ class SupplierPurchaseOrderSchemaTest extends TestCase
         $this->assertTrue(Schema::hasTable('supplier_purchase_order_lines'));
         $this->assertTrue(Schema::hasColumn('supplier_purchase_orders', 'quotation_id'));
 
-        $this->assertTrue(Schema::hasIndex('supplier_purchase_order_lines', 'spo_lines_po_sort_idx'));
-        $this->assertTrue(Schema::hasIndex('supplier_purchase_orders', ['quotation_id']));
-        $this->assertNotSame([], $this->foreignKeyOn('supplier_purchase_order_lines', 'supplier_purchase_order_id'));
+        $this->assertTrue(SchemaConstraints::indexExistsByName('supplier_purchase_order_lines', 'spo_lines_po_sort_idx'));
+        $this->assertTrue(SchemaConstraints::indexExistsOnColumns('supplier_purchase_orders', ['quotation_id']));
+        $this->assertTrue(SchemaConstraints::foreignKeyExists(
+            'supplier_purchase_order_lines',
+            'supplier_purchase_order_id',
+            'supplier_purchase_orders',
+        ));
         $this->assertSame(
             'cascade',
             $this->foreignKeyOn('supplier_purchase_order_lines', 'supplier_purchase_order_id')['on_delete'],
@@ -47,25 +52,36 @@ class SupplierPurchaseOrderSchemaTest extends TestCase
         Schema::table('supplier_purchase_order_lines', function (Blueprint $table): void {
             $table->dropIndex('spo_lines_po_sort_idx');
         });
-        $this->assertFalse(Schema::hasIndex('supplier_purchase_order_lines', 'spo_lines_po_sort_idx'));
+        $this->assertFalse(SchemaConstraints::indexExistsByName('supplier_purchase_order_lines', 'spo_lines_po_sort_idx'));
 
         $this->loadMigration('2026_10_18_130000_create_supplier_purchase_orders_tables')->up();
 
-        $this->assertTrue(Schema::hasIndex('supplier_purchase_order_lines', 'spo_lines_po_sort_idx'));
+        $this->assertTrue(SchemaConstraints::indexExistsByName('supplier_purchase_order_lines', 'spo_lines_po_sort_idx'));
     }
 
     public function test_quotation_id_migration_can_rerun_when_column_already_exists(): void
     {
         $this->assertTrue(Schema::hasColumn('supplier_purchase_orders', 'quotation_id'));
-        $this->assertNotSame([], $this->foreignKeyOn('supplier_purchase_orders', 'quotation_id'));
+        $this->assertTrue(SchemaConstraints::foreignKeyExists(
+            'supplier_purchase_orders',
+            'quotation_id',
+            'quotations',
+        ));
 
         $this->loadMigration('2026_10_18_150000_add_quotation_id_to_supplier_purchase_orders')->up();
 
         $this->assertTrue(Schema::hasColumn('supplier_purchase_orders', 'quotation_id'));
-        $this->assertTrue(Schema::hasIndex('supplier_purchase_orders', ['quotation_id']));
+        $this->assertTrue(SchemaConstraints::indexExistsOnColumns('supplier_purchase_orders', ['quotation_id']));
         $this->assertSame(
             'set null',
             $this->foreignKeyOn('supplier_purchase_orders', 'quotation_id')['on_delete'],
+        );
+        $this->assertCount(
+            1,
+            array_filter(
+                Schema::getForeignKeys('supplier_purchase_orders'),
+                fn (array $foreignKey): bool => $foreignKey['columns'] === ['quotation_id'],
+            ),
         );
     }
 

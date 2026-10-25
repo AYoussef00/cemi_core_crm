@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\SchemaConstraints;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -20,7 +21,7 @@ return new class extends Migration
             });
         }
 
-        if (! Schema::hasForeignKey('sales_requests', ['origin_visit_id'])) {
+        if (! SchemaConstraints::foreignKeyExists('sales_requests', 'origin_visit_id', 'customer_visits')) {
             Schema::table('sales_requests', function (Blueprint $table) {
                 $table->foreign('origin_visit_id', 'sr_origin_visit_fk')
                     ->references('id')
@@ -29,8 +30,8 @@ return new class extends Migration
             });
         }
 
-        if (! Schema::hasIndex('sales_requests', ['origin_visit_id'])
-            && ! Schema::hasIndex('sales_requests', 'sr_origin_visit_idx')) {
+        if (! SchemaConstraints::indexExistsOnColumns('sales_requests', ['origin_visit_id'])
+            && ! SchemaConstraints::indexExistsByName('sales_requests', 'sr_origin_visit_idx')) {
             Schema::table('sales_requests', function (Blueprint $table) {
                 $table->index('origin_visit_id', 'sr_origin_visit_idx');
             });
@@ -45,12 +46,12 @@ return new class extends Migration
 
         Schema::table('sales_requests', function (Blueprint $table) {
             foreach (Schema::getForeignKeys('sales_requests') as $foreignKey) {
-                if ($foreignKey['columns'] === ['origin_visit_id'] && is_string($foreignKey['name']) && $foreignKey['name'] !== '') {
+                if (($foreignKey['columns'] ?? []) === ['origin_visit_id'] && is_string($foreignKey['name']) && $foreignKey['name'] !== '') {
                     $table->dropForeign($foreignKey['name']);
                 }
             }
 
-            if (Schema::hasIndex('sales_requests', 'sr_origin_visit_idx')) {
+            if (SchemaConstraints::indexExistsByName('sales_requests', 'sr_origin_visit_idx')) {
                 $table->dropIndex('sr_origin_visit_idx');
             }
 

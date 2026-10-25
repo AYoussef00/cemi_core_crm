@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\SchemaConstraints;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -129,7 +130,7 @@ return new class extends Migration
         string $referencedTable,
         bool $cascadeOnDelete,
     ): void {
-        if (Schema::hasForeignKey($table, [$column])) {
+        if (SchemaConstraints::foreignKeyExists($table, $column, $referencedTable)) {
             return;
         }
 
@@ -151,7 +152,8 @@ return new class extends Migration
      */
     private function ensureIndex(string $table, array $columns, string $name): void
     {
-        if (Schema::hasIndex($table, $columns) || Schema::hasIndex($table, $name)) {
+        if (SchemaConstraints::indexExistsOnColumns($table, $columns)
+            || SchemaConstraints::indexExistsByName($table, $name)) {
             return;
         }
 

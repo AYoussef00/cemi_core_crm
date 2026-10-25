@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Procurement;
 
+use App\Support\SchemaConstraints;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -31,8 +32,8 @@ class SupplierGoodsReceiptSchemaTest extends TestCase
             'sort_order',
         ]));
 
-        $this->assertTrue(Schema::hasIndex('supplier_goods_receipts', 'sgr_po_received_at_idx'));
-        $this->assertTrue(Schema::hasIndex('supplier_goods_receipt_lines', 'sgr_lines_receipt_sort_idx'));
+        $this->assertTrue(SchemaConstraints::indexExistsByName('supplier_goods_receipts', 'sgr_po_received_at_idx'));
+        $this->assertTrue(SchemaConstraints::indexExistsByName('supplier_goods_receipt_lines', 'sgr_lines_receipt_sort_idx'));
 
         foreach (['supplier_goods_receipts', 'supplier_goods_receipt_lines'] as $table) {
             foreach (Schema::getIndexes($table) as $index) {
@@ -46,10 +47,11 @@ class SupplierGoodsReceiptSchemaTest extends TestCase
             }
         }
 
-        $this->assertNotSame(
-            [],
-            $this->foreignKeyOn('supplier_goods_receipt_lines', 'supplier_purchase_order_line_id'),
-        );
+        $this->assertTrue(SchemaConstraints::foreignKeyExists(
+            'supplier_goods_receipt_lines',
+            'supplier_purchase_order_line_id',
+            'supplier_purchase_order_lines',
+        ));
         $this->assertSame(
             'restrict',
             $this->foreignKeyOn('supplier_goods_receipt_lines', 'supplier_purchase_order_line_id')['on_delete'],
@@ -105,11 +107,12 @@ class SupplierGoodsReceiptSchemaTest extends TestCase
         $this->loadGoodsReceiptMigration()->up();
 
         $this->assertTrue(Schema::hasTable('supplier_goods_receipt_lines'));
-        $this->assertTrue(Schema::hasIndex('supplier_goods_receipt_lines', 'sgr_lines_receipt_sort_idx'));
-        $this->assertNotSame(
-            [],
-            $this->foreignKeyOn('supplier_goods_receipt_lines', 'supplier_purchase_order_line_id'),
-        );
+        $this->assertTrue(SchemaConstraints::indexExistsByName('supplier_goods_receipt_lines', 'sgr_lines_receipt_sort_idx'));
+        $this->assertTrue(SchemaConstraints::foreignKeyExists(
+            'supplier_goods_receipt_lines',
+            'supplier_purchase_order_line_id',
+            'supplier_purchase_order_lines',
+        ));
     }
 
     public function test_goods_receipt_migration_adds_missing_short_header_index(): void
@@ -117,11 +120,34 @@ class SupplierGoodsReceiptSchemaTest extends TestCase
         Schema::table('supplier_goods_receipts', function (Blueprint $table): void {
             $table->dropIndex('sgr_po_received_at_idx');
         });
-        $this->assertFalse(Schema::hasIndex('supplier_goods_receipts', 'sgr_po_received_at_idx'));
+        $this->assertFalse(SchemaConstraints::indexExistsByName('supplier_goods_receipts', 'sgr_po_received_at_idx'));
+        $this->assertFalse(SchemaConstraints::indexExistsOnColumns(
+            'supplier_goods_receipts',
+            ['supplier_purchase_order_id', 'received_at'],
+        ));
 
         $this->loadGoodsReceiptMigration()->up();
 
-        $this->assertTrue(Schema::hasIndex('supplier_goods_receipts', 'sgr_po_received_at_idx'));
+        $this->assertTrue(SchemaConstraints::indexExistsByName('supplier_goods_receipts', 'sgr_po_received_at_idx'));
+    }
+
+    public function test_goods_receipt_migration_keeps_existing_foreign_keys_when_rerun(): void
+    {
+        $before = count(Schema::getForeignKeys('supplier_goods_receipt_lines'));
+
+        $this->loadGoodsReceiptMigration()->up();
+
+        $this->assertSame($before, count(Schema::getForeignKeys('supplier_goods_receipt_lines')));
+        $this->assertTrue(SchemaConstraints::foreignKeyExists(
+            'supplier_goods_receipt_lines',
+            'supplier_goods_receipt_id',
+            'supplier_goods_receipts',
+        ));
+        $this->assertTrue(SchemaConstraints::foreignKeyExists(
+            'supplier_goods_receipts',
+            'supplier_purchase_order_id',
+            'supplier_purchase_orders',
+        ));
     }
 
     private function loadGoodsReceiptMigration(): object

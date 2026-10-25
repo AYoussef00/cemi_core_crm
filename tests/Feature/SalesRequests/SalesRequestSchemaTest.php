@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\SalesRequests;
 
+use App\Support\SchemaConstraints;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -13,8 +14,12 @@ class SalesRequestSchemaTest extends TestCase
     public function test_origin_visit_id_uses_short_named_constraints(): void
     {
         $this->assertTrue(Schema::hasColumn('sales_requests', 'origin_visit_id'));
-        $this->assertTrue(Schema::hasIndex('sales_requests', ['origin_visit_id']));
-        $this->assertNotSame([], $this->foreignKeyOn('sales_requests', 'origin_visit_id'));
+        $this->assertTrue(SchemaConstraints::indexExistsOnColumns('sales_requests', ['origin_visit_id']));
+        $this->assertTrue(SchemaConstraints::foreignKeyExists(
+            'sales_requests',
+            'origin_visit_id',
+            'customer_visits',
+        ));
         $this->assertSame(
             'restrict',
             $this->foreignKeyOn('sales_requests', 'origin_visit_id')['on_delete'],
@@ -39,10 +44,17 @@ class SalesRequestSchemaTest extends TestCase
         $migration->up();
 
         $this->assertTrue(Schema::hasColumn('sales_requests', 'origin_visit_id'));
-        $this->assertTrue(Schema::hasIndex('sales_requests', ['origin_visit_id']));
+        $this->assertTrue(SchemaConstraints::indexExistsOnColumns('sales_requests', ['origin_visit_id']));
         $this->assertSame(
             'restrict',
             $this->foreignKeyOn('sales_requests', 'origin_visit_id')['on_delete'],
+        );
+        $this->assertCount(
+            1,
+            array_filter(
+                Schema::getForeignKeys('sales_requests'),
+                fn (array $foreignKey): bool => $foreignKey['columns'] === ['origin_visit_id'],
+            ),
         );
     }
 
