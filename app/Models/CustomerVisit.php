@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'customer_id',
@@ -51,6 +52,26 @@ class CustomerVisit extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function originatedSalesRequests(): HasMany
+    {
+        return $this->hasMany(SalesRequest::class, 'origin_visit_id');
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === VisitStatus::Completed;
+    }
+
+    public function suggestedSalesRequestNotes(): ?string
+    {
+        $needs = trim((string) $this->customer_needs);
+        if ($needs === '') {
+            return null;
+        }
+
+        return mb_substr($needs, 0, 2000);
     }
 
     public function statusLabelAr(): string

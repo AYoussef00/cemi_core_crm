@@ -31,6 +31,7 @@ class SalesRequestWorkflow
     /**
      * @param  array{
      *     customer_id: int,
+     *     origin_visit_id?: int|null,
      *     notes_ar?: string|null,
      *     lines: list<array{product_id: int, quantity: string, availability: string}>
      * }  $payload
@@ -43,6 +44,7 @@ class SalesRequestWorkflow
         $request = DB::transaction(function () use ($actor, $payload, $customer): SalesRequest {
             $request = SalesRequest::query()->create([
                 'customer_id' => $customer->id,
+                'origin_visit_id' => $payload['origin_visit_id'] ?? null,
                 'created_by_user_id' => $actor->id,
                 'status' => SalesRequestStatus::Draft,
                 'notes_ar' => $payload['notes_ar'] ?? null,
@@ -53,6 +55,7 @@ class SalesRequestWorkflow
             $this->audit->record('sales_request.created', $request, [
                 'customer_id' => $customer->id,
                 'customer_name_ar' => $customer->name_ar,
+                'origin_visit_id' => $request->origin_visit_id,
                 'status' => $request->status->value,
                 'line_count' => count($payload['lines']),
             ], $actor);

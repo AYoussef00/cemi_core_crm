@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'customer_id',
+    'origin_visit_id',
     'created_by_user_id',
     'status',
     'notes_ar',
@@ -39,6 +40,11 @@ class SalesRequest extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function originVisit(): BelongsTo
+    {
+        return $this->belongsTo(CustomerVisit::class, 'origin_visit_id');
     }
 
     public function createdBy(): BelongsTo

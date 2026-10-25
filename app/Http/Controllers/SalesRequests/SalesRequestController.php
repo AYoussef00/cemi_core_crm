@@ -12,6 +12,7 @@ use App\Models\SalesRequest;
 use App\Models\User;
 use App\Support\Inventory\InventoryService;
 use App\Support\SalesRequests\LineAvailability;
+use App\Support\SalesRequests\OriginVisitResolver;
 use App\Support\SalesRequests\SalesRequestStatus;
 use App\Support\SalesRequests\SalesRequestWorkflow;
 use DomainException;
@@ -48,19 +49,28 @@ class SalesRequestController extends Controller
         ]);
     }
 
-    public function create(Request $request, InventoryService $inventory): View
+    public function create(Request $request, InventoryService $inventory, OriginVisitResolver $originVisits): View
     {
         $this->authorize('create', SalesRequest::class);
 
         /** @var User $user */
         $user = $request->user();
+        $originVisit = $originVisits->fromCreateQuery($request, $user);
+
+        if ($originVisit !== null && ! $user->can('createForCustomer', [SalesRequest::class, $originVisit->customer])) {
+            abort(403);
+        }
+
+        $preselectCustomerId = $originVisit?->customer_id ?? ($request->integer('customer_id') ?: null);
 
         return view('sales-requests.create', [
             'customers' => Customer::query()->visibleTo($user)->orderBy('name_ar')->get(),
             'products' => Product::query()->with('unit')->orderBy('name_ar')->get(),
             'availabilities' => LineAvailability::cases(),
             'stockHints' => $this->stockHints($inventory),
-            'preselectCustomerId' => $request->integer('customer_id') ?: null,
+            'preselectCustomerId' => $preselectCustomerId,
+            'originVisit' => $originVisit,
+            'prefillNotesAr' => $originVisit?->suggestedSalesRequestNotes(),
         ]);
     }
 
@@ -83,6 +93,7 @@ class SalesRequestController extends Controller
 
         $salesRequest->load([
             'customer',
+            'originVisit',
             'createdBy',
             'cancelledBy',
             'lines.product.unit',

@@ -5,8 +5,11 @@ namespace App\Http\Requests\SalesRequests;
 use App\Models\Customer;
 use App\Models\SalesRequest;
 use App\Support\SalesRequests\LineAvailabilityResolver;
+use App\Support\SalesRequests\OriginVisitResolver;
+use DomainException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreSalesRequestRequest extends FormRequest
 {
@@ -36,6 +39,7 @@ class StoreSalesRequestRequest extends FormRequest
     {
         return [
             'customer_id' => ['required', 'integer', Rule::exists('customers', 'id')],
+            'origin_visit_id' => ['nullable', 'integer', Rule::exists('customer_visits', 'id')],
             'notes_ar' => ['nullable', 'string', 'max:2000'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.product_id' => ['required', 'integer', Rule::exists('products', 'id')],
@@ -52,6 +56,7 @@ class StoreSalesRequestRequest extends FormRequest
     {
         return [
             'customer_id' => 'المنشأة',
+            'origin_visit_id' => 'الزيارة',
             'notes_ar' => 'ملاحظات',
             'lines' => 'البنود',
             'lines.*.product_id' => 'المنتج',
@@ -60,9 +65,39 @@ class StoreSalesRequestRequest extends FormRequest
         ];
     }
 
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $visitId = $this->integer('origin_visit_id');
+            if ($visitId <= 0) {
+                return;
+            }
+
+            $user = $this->user();
+            if ($user === null) {
+                return;
+            }
+
+            try {
+                app(OriginVisitResolver::class)->attachable(
+                    $visitId,
+                    (int) $this->input('customer_id'),
+                    $user,
+                );
+            } catch (DomainException $e) {
+                $validator->errors()->add('origin_visit_id', $e->getMessage());
+            }
+        });
+    }
+
     /**
      * @return array{
      *     customer_id: int,
+     *     origin_visit_id: int|null,
      *     notes_ar: string|null,
      *     lines: list<array{product_id: int, quantity: string, availability: string}>
      * }
@@ -81,8 +116,11 @@ class StoreSalesRequestRequest extends FormRequest
             ];
         }
 
+        $originVisitId = $this->validated('origin_visit_id');
+
         return [
             'customer_id' => (int) $this->validated('customer_id'),
+            'origin_visit_id' => $originVisitId ? (int) $originVisitId : null,
             'notes_ar' => $this->validated('notes_ar'),
             'lines' => $lines,
         ];
